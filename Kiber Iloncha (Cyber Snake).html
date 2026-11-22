@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kiber Iloncha | Cyber Snake</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: JetBrains Mono & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #050811;
+            --panel-bg: rgba(12, 19, 34, 0.85);
+            --neon-green: #00ff9d;
+            --neon-cyan: #00e5ff;
+            --neon-pink: #ff2a6d;
+            --neon-gold: #ffd700;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(0, 229, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(0, 255, 157, 0.08) 0%, transparent 40%),
+                linear-gradient(to right, rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+        }
+
+        .font-cyber {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Glassmorphism oyna */
+        .cyber-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.08), inset 0 0 20px rgba(0, 255, 157, 0.03);
+        }
+
+        /* O'yin maydoni ramkasi */
+        .canvas-wrapper {
+            position: relative;
+            border-radius: 1.25rem;
+            padding: 3px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-green), #7c3aed);
+            box-shadow: 0 0 25px rgba(0, 255, 157, 0.25);
+        }
+
+        canvas {
+            display: block;
+            background-color: #070c18;
+            border-radius: 1.1rem;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Neon tugmalar */
+        .cyber-btn {
+            background: linear-gradient(180deg, rgba(20, 32, 56, 0.95) 0%, rgba(10, 17, 32, 0.95) 100%);
+            border: 1px solid rgba(0, 229, 255, 0.35);
+            color: #e2e8f0;
+            transition: all 0.15s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .cyber-btn:hover {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+        }
+
+        .cyber-btn:active, .cyber-btn.pressed {
+            transform: scale(0.93);
+            background: rgba(0, 255, 157, 0.2);
+            border-color: var(--neon-green);
+            color: #ffffff;
+        }
+
+        /* Asosiy harakat tugmasi (Play / Restart) */
+        .cyber-btn-primary {
+            background: linear-gradient(135deg, #00ff9d 0%, #00e5ff 100%);
+            color: #040914;
+            font-weight: 800;
+            border: none;
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.45);
+            transition: all 0.2s ease;
+        }
+
+        .cyber-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 255, 157, 0.7);
+        }
+
+        .cyber-btn-primary:active {
+            transform: translateY(1px) scale(0.97);
+        }
+
+        /* D-Pad (Mobil boshqaruv) tugmalari */
+        .dpad-btn {
+            width: 62px;
+            height: 62px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            background: linear-gradient(145deg, #101b33, #091020);
+            border: 1.5px solid rgba(0, 229, 255, 0.35);
+            color: var(--neon-cyan);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.12);
+            transition: transform 0.1s ease, background 0.1s ease, box-shadow 0.1s ease;
+        }
+
+        .dpad-btn:active {
+            transform: scale(0.9);
+            background: rgba(0, 255, 157, 0.22);
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            box-shadow: 0 0 18px rgba(0, 255, 157, 0.4);
+        }
+
+        /* Qiyinlik darajasi aktiv holati */
+        .diff-btn.active {
+            background: rgba(0, 255, 157, 0.18);
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            box-shadow: 0 0 12px rgba(0, 255, 157, 0.25);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 157, 0.6), 0 0 20px rgba(0, 229, 255, 0.4); }
+            50% { text-shadow: 0 0 18px rgba(0, 255, 157, 0.9), 0 0 32px rgba(0, 229, 255, 0.7); }
+        }
+
+        .neon-title {
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="p-3 sm:p-5">
+
+    <!-- Asosiy Konteyner -->
+    <div class="w-full max-w-md mx-auto flex flex-col gap-3.5">
+
+        <!-- Sarlavha va Ovoz / Pauza tugmalari -->
+        <header class="cyber-panel rounded-2xl px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-400/40 flex items-center justify-center text-emerald-400">
+                    <i class="fa-solid fa-shield-virus text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-cyber font-extrabold text-base sm:text-lg tracking-wider text-white neon-title leading-none">
+                        KIBER <span class="text-emerald-400">ILONCHA</span>
+                    </h1>
+                    <span class="text-[11px] font-cyber text-cyan-400/80">DATA_HUNTER // v2.0</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Ovozni yoqish/o'chirish -->
+                <button id="sound-btn" title="Ovozni o'chirish/yoqish" class="cyber-btn w-10 h-10 rounded-xl flex items-center justify-center text-sm">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-cyan-400"></i>
+                </button>
+                <!-- Pauza tugmasi -->
+                <button id="pause-btn" title="To'xtatish (Pauza)" class="cyber-btn w-10 h-10 rounded-xl flex items-center justify-center text-sm">
+                    <i id="pause-icon" class="fa-solid fa-pause text-emerald-400"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Ballar va Rekord Paneli -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="cyber-panel rounded-2xl px-4 py-2.5 flex items-center justify-between">
+                <div>
+                    <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Joriy ball</div>
+                    <div id="current-score" class="font-cyber text-2xl font-extrabold text-emerald-400">0</div>
+                </div>
+                <i class="fa-solid fa-microchip text-emerald-400/40 text-2xl"></i>
+            </div>
+
+            <div class="cyber-panel rounded-2xl px-4 py-2.5 flex items-center justify-between">
+                <div>
+                    <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Eng yuqori rekord</div>
+                    <div id="high-score" class="font-cyber text-2xl font-extrabold text-amber-400">0</div>
+                </div>
+                <i class="fa-solid fa-trophy text-amber-400/40 text-2xl"></i>
+            </div>
+        </div>
+
+        <!-- Qiyinlik Darajasi Tanlovi -->
+        <div class="cyber-panel rounded-2xl p-1.5 grid grid-cols-3 gap-1.5">
+            <button data-speed="145" class="diff-btn cyber-btn py-2 rounded-xl text-xs font-cyber font-bold transition-all">
+                <i class="fa-solid fa-leaf mr-1"></i> Oson
+            </button>
+            <button data-speed="105" class="diff-btn active cyber-btn py-2 rounded-xl text-xs font-cyber font-bold transition-all">
+                <i class="fa-solid fa-bolt mr-1"></i> O'rtacha
+            </button>
+            <button data-speed="68" class="diff-btn cyber-btn py-2 rounded-xl text-xs font-cyber font-bold transition-all">
+                <i class="fa-solid fa-fire mr-1"></i> Qiyin
+            </button>
+        </div>
+
+        <!-- O'yin Maydoni (Canvas + Overlay Oynalar) -->
+        <div class="canvas-wrapper w-full aspect-square">
+            <canvas id="game-canvas"></canvas>
+
+            <!-- Boshlash Ekrani (Start Overlay) -->
+            <div id="start-overlay" class="absolute inset-0 rounded-[1.1rem] bg-[#060b16]/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
+                <div class="w-16 h-16 rounded-2xl bg-emerald-500/15 border border-emerald-400/40 flex items-center justify-center text-emerald-400 text-3xl mb-4 shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-gamepad"></i>
+                </div>
+                <h2 class="font-cyber text-xl sm:text-2xl font-extrabold text-white mb-2">TIZIMGA KIRISH</h2>
+                <p class="text-xs sm:text-sm text-slate-300 max-w-xs mb-6 leading-relaxed">
+                    Ma'lumot paketlarini (<span class="text-rose-400 font-semibold">qizil</span> va <span class="text-amber-400 font-semibold">oltin</span>) yig'ing, devorlar va o'z dumingizga urilmang!
+                </p>
+                <button id="start-btn" class="cyber-btn-primary px-8 py-3.5 rounded-2xl font-cyber text-sm sm:text-base tracking-wide flex items-center gap-2.5 cursor-pointer">
+                    <i class="fa-solid fa-play"></i>
+                    <span>O'YINNI BOSHLASH</span>
+                </button>
+                <p class="text-[11px] text-slate-400 mt-4 font-cyber">
+                    Klaviatura: Strelkalar / WASD • Mobil: Pastdagi tugmalar
+                </p>
+            </div>
+
+            <!-- Pauza Ekrani (Pause Overlay) -->
+            <div id="pause-overlay" class="hidden absolute inset-0 rounded-[1.1rem] bg-[#060b16]/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
+                <div class="w-14 h-14 rounded-2xl bg-cyan-500/15 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-2xl mb-3">
+                    <i class="fa-solid fa-pause"></i>
+                </div>
+                <h2 class="font-cyber text-2xl font-extrabold text-cyan-400 mb-2">PAUZA</h2>
+                <p class="text-xs text-slate-300 mb-5">O'yin vaqtincha to'xtatildi</p>
+                <button id="resume-btn" class="cyber-btn-primary px-7 py-3 rounded-xl font-cyber text-sm flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-play"></i>
+                    <span>DAVOM ETTIRISH</span>
+                </button>
+            </div>
+
+            <!-- O'yin Tugadi Ekrani (Game Over Overlay) -->
+            <div id="gameover-overlay" class="hidden absolute inset-0 rounded-[1.1rem] bg-[#090510]/92 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20">
+                <div class="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-500/50 flex items-center justify-center text-rose-500 text-3xl mb-3 shadow-lg shadow-rose-500/20">
+                    <i class="fa-solid fa-skull-crossbones"></i>
+                </div>
+                <h2 class="font-cyber text-2xl sm:text-3xl font-extrabold text-rose-500 tracking-wide mb-1">O'YIN TUGADI!</h2>
+                <p id="gameover-reason" class="text-xs text-slate-400 mb-4 font-cyber">XAVFSIZLIK TIZIMI BLOKLANDI</p>
+
+                <div class="w-full max-w-[240px] bg-slate-900/90 border border-slate-700/80 rounded-2xl p-3.5 mb-5 grid grid-cols-2 gap-2">
+                    <div class="border-r border-slate-800">
+                        <div class="text-[10px] text-slate-400 uppercase">To'plangan ball</div>
+                        <div id="final-score" class="font-cyber text-xl font-extrabold text-emerald-400">0</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400 uppercase">Rekord</div>
+                        <div id="final-best" class="font-cyber text-xl font-extrabold text-amber-400">0</div>
+                    </div>
+                </div>
+
+                <div id="new-record-badge" class="hidden mb-4 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs font-cyber animate-bounce">
+                    <i class="fa-solid fa-star mr-1"></i> YANGI REKORD O'RNATILDI!
+                </div>
+
+                <button id="restart-btn" class="cyber-btn-primary px-8 py-3.5 rounded-2xl font-cyber text-sm sm:text-base flex items-center gap-2.5 cursor-pointer">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>QAYTA O'YNASH</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobil / Sensorli Boshqaruv Tugmalari (D-Pad) -->
+        <div class="cyber-panel rounded-2xl p-3.5 flex flex-col items-center justify-center">
+            <div class="grid grid-cols-3 gap-2.5 items-center justify-items-center">
+                <div></div>
+                <button id="btn-up" aria-label="Yuqoriga" class="dpad-btn">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+                <div></div>
+
+                <button id="btn-left" aria-label="Chapga" class="dpad-btn">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="w-12 h-12 rounded-full bg-slate-900/90 border border-cyan-500/20 flex items-center justify-center text-cyan-500/40 text-xs font-cyber">
+                    AI
+                </div>
+                <button id="btn-right" aria-label="O'ngga" class="dpad-btn">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+                <div></div>
+                <button id="btn-down" aria-label="Pastga" class="dpad-btn">
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <div></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. WEB AUDIO API - KIBER OVOZ EFFEKTLARI
+        // ==========================================
+        class CyberAudio {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            toggle() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+
+            // Oddiy ma'lumot paketi (olma) yegandagi ovoz
+            playEat(isGolden = false) {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = isGolden ? 'triangle' : 'sine';
+                osc.frequency.setValueAtTime(isGolden ? 520 : 440, now);
+                osc.frequency.exponentialRampToValueAtTime(isGolden ? 1040 : 880, now + 0.12);
+
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.14);
+            }
+
+            // Burilish ovozi (juda yengil klik)
+            playTurn() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(160, now + 0.04);
+
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.04);
+            }
+
+            // Yutqazgandagi (Game Over) kiber-signal ovozi
+            playGameOver() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(140, now + 0.22);
+                osc.frequency.linearRampToValueAtTime(65, now + 0.48);
+
+                gain.gain.setValueAtTime(0.22, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.5);
+            }
+        }
+
+        const audio = new CyberAudio();
+
+        // ==========================================
+        // 2. O'YIN SOZLAMALARI VA O'ZGARUVCHILAR
+        // ==========================================
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Elementlar
+        const currentScoreEl = document.getElementById('current-score');
+        const highScoreEl = document.getElementById('high-score');
+        const finalScoreEl = document.getElementById('final-score');
+        const finalBestEl = document.getElementById('final-best');
+        const newRecordBadge = document.getElementById('new-record-badge');
+        const gameoverReasonEl = document.getElementById('gameover-reason');
+
+        const startOverlay = document.getElementById('start-overlay');
+        const pauseOverlay = document.getElementById('pause-overlay');
+        const gameoverOverlay = document.getElementById('gameover-overlay');
+
+        const startBtn = document.getElementById('start-btn');
+        const resumeBtn = document.getElementById('resume-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const pauseIcon = document.getElementById('pause-icon');
+        const soundBtn = document.getElementById('sound-btn');
+        const soundIcon = document.getElementById('sound-icon');
+        const diffButtons = document.querySelectorAll('.diff-btn');
+
+        // Setka (Grid) o'lchami: 20x20 katak
+        const GRID_COUNT = 20;
+        let tileSize = 20;
+
+        // O'yin holati
+        let snake = [];
+        let direction = { x: 1, y: 0 };
+        let nextDirection = { x: 1, y: 0 };
+        let food = { x: 10, y: 10, isGolden: false };
+        let particles = [];
+
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('cyber_snake_highscore')) || 0;
+        highScoreEl.textContent = highScore;
+
+        let gameSpeed = 105; // ms (O'rtacha)
+        let lastRenderTime = 0;
+        let isRunning = false;
+        let isPaused = false;
+        let animationFrameId = null;
+
+        // ==========================================
+        // 3. RESPONSIVE CANVAS O'LCHAMINI SOZLASH
+        // ==========================================
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const size = container.clientWidth - 6; // padding hisobga olinadi
+            const dpr = window.devicePixelRatio || 1;
+
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            ctx.scale(dpr, dpr);
+
+            tileSize = size / GRID_COUNT;
+            if (!isRunning) {
+                drawScene();
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // ==========================================
+        // 4. O'YIN LOGIKASI
+        // ==========================================
+        function initGame() {
+            snake = [
+                { x: 6, y: 10 },
+                { x: 5, y: 10 },
+                { x: 4, y: 10 }
+            ];
+            direction = { x: 1, y: 0 };
+            nextDirection = { x: 1, y: 0 };
+            score = 0;
+            particles = [];
+            currentScoreEl.textContent = score;
+            newRecordBadge.classList.add('hidden');
+            spawnFood();
+        }
+
+        function spawnFood() {
+            let validPosition = false;
+            while (!validPosition) {
+                const x = Math.floor(Math.random() * GRID_COUNT);
+                const y = Math.floor(Math.random() * GRID_COUNT);
+                const onSnake = snake.some(segment => segment.x === x && segment.y === y);
+                if (!onSnake) {
+                    // Har 5-ovqat oltin bonus paketi bo'ladi (+30 ball)
+                    const isGolden = (score > 0 && score % 40 === 0) || Math.random() < 0.2;
+                    food = { x, y, isGolden };
+                    validPosition = true;
+                }
+            }
+        }
+
+        // Ovqat yeganda uchqunlar (particles) yaratish
+        function createExplosion(gridX, gridY, color) {
+            const centerX = (gridX + 0.5) * tileSize;
+            const centerY = (gridY + 0.5) * tileSize;
+            for (let i = 0; i < 14; i++) {
+                const angle = (Math.PI * 2 * i) / 14;
+                const speed = 1.5 + Math.random() * 2.5;
+                particles.push({
+                    x: centerX,
+                    y: centerY,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    alpha: 1,
+                    color: color,
+                    size: 2 + Math.random() * 2.5
+                });
+            }
+        }
+
+        function changeDirection(newX, newY) {
+            if (!isRunning || isPaused) return;
+            // O'ziga teskari yo'nalishga darhol burilishni taqiqlash
+            if (newX === -direction.x && newY === -direction.y) return;
+            if (newX === nextDirection.x && newY === nextDirection.y) return;
+
+            nextDirection = { x: newX, y: newY };
+            audio.playTurn();
+        }
+
+        function updateGame() {
+            direction = { ...nextDirection };
+
+            const head = {
+                x: snake[0].x + direction.x,
+                y: snake[0].y + direction.y
+            };
+
+            // 1. Devorga urilishni tekshirish
+            if (head.x < 0 || head.x >= GRID_COUNT || head.y < 0 || head.y >= GRID_COUNT) {
+                triggerGameOver("DEVORGA URILDINGIZ!");
+                return;
+            }
+
+            // 2. O'z tanasiga urilishni tekshirish
+            if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                triggerGameOver("O'Z DUMINGIZGA URILDINGIZ!");
+                return;
+            }
+
+            snake.unshift(head);
+
+            // 3. Ma'lumot paketini (ovqatni) yeyish
+            if (head.x === food.x && head.y === food.y) {
+                const points = food.isGolden ? 30 : 10;
+                score += points;
+                currentScoreEl.textContent = score;
+
+                audio.playEat(food.isGolden);
+                createExplosion(food.x, food.y, food.isGolden ? '#ffd700' : '#ff2a6d');
+
+                if (score > highScore) {
+                    highScore = score;
+                    highScoreEl.textContent = highScore;
+                    localStorage.setItem('cyber_snake_highscore', highScore);
+                    newRecordBadge.classList.remove('hidden');
+                }
+
+                spawnFood();
+            } else {
+                snake.pop();
+            }
+        }
+
+        function triggerGameOver(reason) {
+            isRunning = false;
+            isPaused = false;
+            audio.playGameOver();
+
+            gameoverReasonEl.textContent = reason;
+            finalScoreEl.textContent = score;
+            finalBestEl.textContent = highScore;
+            gameoverOverlay.classList.remove('hidden');
+        }
+
+        // ==========================================
+        // 5. CHIZISH (RENDERING) FUNKSIYALARI
+        // ==========================================
+        function drawScene() {
+            const boardSize = GRID_COUNT * tileSize;
+
+            // Orqa fonni tozalash
+            ctx.fillStyle = '#070c18';
+            ctx.fillRect(0, 0, boardSize, boardSize);
+
+            // Kiber-setka chiziqlari
+            ctx.strokeStyle = 'rgba(0, 229, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for (let i = 1; i < GRID_COUNT; i++) {
+                const pos = i * tileSize;
+                ctx.beginPath();
+                ctx.moveTo(pos, 0);
+                ctx.lineTo(pos, boardSize);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, pos);
+                ctx.lineTo(boardSize, pos);
+                ctx.stroke();
+            }
+
+            // Ma'lumot paketini (Olma / Bonus) chizish
+            if (food) {
+                const fx = (food.x + 0.5) * tileSize;
+                const fy = (food.y + 0.5) * tileSize;
+                const pulse = Math.sin(Date.now() / 160) * 2;
+                const radius = (tileSize * 0.36) + pulse * 0.4;
+
+                ctx.save();
+                ctx.shadowBlur = 16;
+                ctx.shadowColor = food.isGolden ? '#ffd700' : '#ff2a6d';
+                ctx.fillStyle = food.isGolden ? '#ffd700' : '#ff2a6d';
+
+                ctx.beginPath();
+                ctx.arc(fx, fy, Math.max(4, radius), 0, Math.PI * 2);
+                ctx.fill();
+
+                // Ichki yorqin nuqta
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(fx - radius * 0.25, fy - radius * 0.25, Math.max(1.5, radius * 0.28), 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Ilonni chizish
+            snake.forEach((segment, index) => {
+                const x = segment.x * tileSize;
+                const y = segment.y * tileSize;
+                const pad = 1.5;
+                const size = tileSize - pad * 2;
+                const isHead = index === 0;
+
+                ctx.save();
+                if (isHead) {
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#00ff9d';
+                    ctx.fillStyle = '#00ff9d';
+                } else {
+                    // Boshidan dumiga qarab yashildan ko'kka o'tuvchi gradient effekt
+                    const ratio = 1 - (index / (snake.length + 2));
+                    ctx.fillStyle = `rgba(0, ${Math.floor(180 + 75 * ratio)}, ${Math.floor(255 - 98 * ratio)}, ${0.45 + 0.55 * ratio})`;
+                }
+
+                // Yumaloq burchakli segment
+                const r = isHead ? 7 : 5;
+                ctx.beginPath();
+                ctx.roundRect(x + pad, y + pad, size, size, r);
+                ctx.fill();
+
+                // Ilon ko'zlari (faqat bosh qismida)
+                if (isHead) {
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#050811';
+                    const eyeSize = Math.max(2, tileSize * 0.12);
+                    let e1x = x + tileSize * 0.65, e1y = y + tileSize * 0.3;
+                    let e2x = x + tileSize * 0.65, e2y = y + tileSize * 0.7;
+
+                    if (direction.x === -1) {
+                        e1x = x + tileSize * 0.35; e2x = x + tileSize * 0.35;
+                    } else if (direction.y === -1) {
+                        e1x = x + tileSize * 0.3; e1y = y + tileSize * 0.35;
+                        e2x = x + tileSize * 0.7; e2y = y + tileSize * 0.35;
+                    } else if (direction.y === 1) {
+                        e1x = x + tileSize * 0.3; e1y = y + tileSize * 0.65;
+                        e2x = x + tileSize * 0.7; e2y = y + tileSize * 0.65;
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(e1x, e1y, eyeSize, 0, Math.PI * 2);
+                    ctx.arc(e2x, e2y, eyeSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            });
+
+            // Uchqun zarrachalarini chizish
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.04;
+
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Asosiy animatsiya tsikli
+        function gameLoop(currentTime) {
+            animationFrameId = requestAnimationFrame(gameLoop);
+
+            if (!isRunning || isPaused) {
+                drawScene();
+                return;
+            }
+
+            const delta = currentTime - lastRenderTime;
+            if (delta >= gameSpeed) {
+                lastRenderTime = currentTime;
+                updateGame();
+            }
+
+            drawScene();
+        }
+
+        // ==========================================
+        // 6. BOSHQARUV TUGMALARI VA HODISALAR
+        // ==========================================
+        function startGame() {
+            audio.init();
+            startOverlay.classList.add('hidden');
+            gameoverOverlay.classList.add('hidden');
+            pauseOverlay.classList.add('hidden');
+            initGame();
+            isRunning = true;
+            isPaused = false;
+            updatePauseIcon();
+            lastRenderTime = performance.now();
+        }
+
+        function togglePause() {
+            if (!isRunning) return;
+            isPaused = !isPaused;
+            updatePauseIcon();
+            if (isPaused) {
+                pauseOverlay.classList.remove('hidden');
+            } else {
+                pauseOverlay.classList.add('hidden');
+                lastRenderTime = performance.now();
+            }
+        }
+
+        function updatePauseIcon() {
+            if (isPaused) {
+                pauseIcon.classList.remove('fa-pause');
+                pauseIcon.classList.add('fa-play');
+            } else {
+                pauseIcon.classList.remove('fa-play');
+                pauseIcon.classList.add('fa-pause');
+            }
+        }
+
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', togglePause);
+        resumeBtn.addEventListener('click', togglePause);
+
+        // Ovoz tugmasi
+        soundBtn.addEventListener('click', () => {
+            const isOn = audio.toggle();
+            if (isOn) {
+                soundIcon.classList.remove('fa-volume-xmark', 'text-slate-500');
+                soundIcon.classList.add('fa-volume-high', 'text-cyan-400');
+            } else {
+                soundIcon.classList.remove('fa-volume-high', 'text-cyan-400');
+                soundIcon.classList.add('fa-volume-xmark', 'text-slate-500');
+            }
+        });
+
+        // Qiyinlik darajasini tanlash
+        diffButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                gameSpeed = parseInt(btn.dataset.speed);
+            });
+        });
+
+        // Klaviatura boshqaruvi (Strelkalar va WASD)
+        window.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(key)) {
+                e.preventDefault();
+            }
+
+            if (key === 'arrowup' || key === 'w') changeDirection(0, -1);
+            else if (key === 'arrowdown' || key === 's') changeDirection(0, 1);
+            else if (key === 'arrowleft' || key === 'a') changeDirection(-1, 0);
+            else if (key === 'arrowright' || key === 'd') changeDirection(1, 0);
+            else if (key === 'p' || key === ' ') {
+                if (isRunning) togglePause();
+            }
+        });
+
+        // Sensorli / Mobil D-Pad tugmalari
+        function bindDpadButton(id, dx, dy) {
+            const btn = document.getElementById(id);
+            const handler = (e) => {
+                e.preventDefault();
+                changeDirection(dx, dy);
+            };
+            btn.addEventListener('touchstart', handler, { passive: false });
+            btn.addEventListener('mousedown', handler);
+        }
+
+        bindDpadButton('btn-up', 0, -1);
+        bindDpadButton('btn-down', 0, 1);
+        bindDpadButton('btn-left', -1, 0);
+        bindDpadButton('btn-right', 1, 0);
+
+        // Canvas ustida barmoq bilan surish (Swipe) boshqaruvi
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        canvas.addEventListener('touchend', (e) => {
+            if (!isRunning || isPaused) return;
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            const dy = e.changedTouches[0].clientY - touchStartY;
+
+            if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                changeDirection(dx > 0 ? 1 : -1, 0);
+            } else {
+                changeDirection(0, dy > 0 ? 1 : -1);
+            }
+        }, { passive: true });
+
+        // Sahifa yuklanganda ishga tushirish
+        window.onload = function () {
+            resizeCanvas();
+            initGame();
+            drawScene();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
